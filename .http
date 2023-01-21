@@ -1,0 +1,27 @@
+# POST http://localhost:1300/v1/api/registerUser HTTP/1.1
+# Content-type: application/json
+
+# {
+#     "fullname":"mirian ereh",
+#     "email":"testemail@gmail.com",
+#     "username":"fine_girl",
+#     "password":"123456"
+# }
+
+# POST http://localhost:1300/v1/api/login HTTP/1.1
+#  Content-type: application/json
+
+# {
+#     "email":"testemail@gmail.com",
+#     "password":"123456"
+# }
+
+# GET http://localhost:1300/v1/api/getuser/testemail@gmail.com HTTP/1.1 
+# Content-type: application/json
+
+
+# GET http://localhost:1300/v1/api/getTopics HTTP/1.1 
+# Content-type: application/json
+
+# GET http://localhost:1300/v1/api/gettopic/63cbaf05963e3b52b7404e81
+# Content-Type: application/json
