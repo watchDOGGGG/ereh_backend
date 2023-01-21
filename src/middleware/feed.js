@@ -9,6 +9,15 @@ export class Topic{
         }
         return request
     }
+
+    static async UserTopicCount(user){
+        const request = await topicCollection.find({user:user}).countDocuments()
+        if(!request){
+            return false
+        }
+        return request
+    }
+
     static async createTopic(req,res){
 
         const {topic, description, category} = req.body

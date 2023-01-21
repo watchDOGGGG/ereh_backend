@@ -2,6 +2,7 @@ import { userCollection } from "../db/collections.js"
 import bcrypt from 'bcrypt'
 import { verify } from "jsonwebtoken"
 import { AccessToken } from "./helper/jwt.js"
+import { Topic } from "./feed.js"
 
 export class User{
 
@@ -60,5 +61,13 @@ export class User{
         res.status(200).send({message:token,user:request})
         return
         
+    }
+
+    static async totalNumberofTopicperuser(req,res){
+        const request = await Topic.UserTopicCount(req.params.user)
+        if(!request){
+            return res.status(500).send({message:'error geting count of user topic'})
+        }
+        return res.status(200).send({message:request})
     }
 }
