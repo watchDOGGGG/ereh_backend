@@ -1,4 +1,4 @@
-import { userCollection } from "../db/collections.js"
+import { topicCollection, userCollection } from "../db/collections.js"
 import bcrypt from 'bcrypt'
 import { verify } from "jsonwebtoken"
 import { AccessToken } from "./helper/jwt.js"
@@ -7,7 +7,7 @@ import { Topic } from "./feed.js"
 export class User{
 
     static async checkUser(data){
-        const user = await userCollection.findOne({$or:[{id:data},{username:data},{email:data}]})
+        const user = await userCollection.findOne({$or:[{_id:data},{username:data},{email:data}]})
         if(!user){
             return false
         }
@@ -64,10 +64,38 @@ export class User{
     }
 
     static async totalNumberofTopicperuser(req,res){
-        const request = await Topic.UserTopicCount(req.params.user)
-        if(!request){
-            return res.status(500).send({message:'error geting count of user topic'})
+        const request = await User.checkUser(req.params.user)
+        console.log(request)
+        if(request === false){
+            return res.status(404).send({message:'user not available'})
         }
-        return res.status(200).send({message:request})
+        const topicCount = await topicCollection.find({user:req.params.user}).countDocuments()
+        return res.status(200).send({message:topicCount})
     }
+
+    static async totalNumberofMembers(req,res){
+        const members = await userCollection.find().countDocuments()
+        return res.status(200).send({message:members})
+    }
+
+    static async userProfile(req, res){
+        const request = await User.checkUser(req.params.user)
+        let topics; 
+
+        if(!request){
+            return res.status(404).send({message:'user not available'})
+        }
+
+        const fetchTopic = await topicCollection.find({user:req.params.user})
+        .populate({path:'user',select:''})
+        if(fetchTopic.length < 1){
+            topics = "no topic yet"
+        }else{
+            topics = fetchTopic
+        }
+
+        return res.status(200).send({message:request, topics:topics})
+
+    }
+    
 }

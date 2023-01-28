@@ -17,6 +17,14 @@ const user = mongoose.Schema({
     username:{
         type: String,
         require:true
+    },
+    role:{
+        type: String,
+        enum:['ADMIN','USER']
+    },
+    date:{
+        type: Date,
+        default:Date.now()
     }
 })
 
@@ -58,8 +66,32 @@ const topic  = mongoose.Schema({
     ],
     file:{
         type:String
+    },
+    status:{
+        type:String,
+        enum:['pending','approve','reject']
+    },
+    date:{
+        type: Date,
+        default:Date.now()
     }
 
 })
 
 export const topicCollection = mongoose.model('topic',topic)
+
+
+const report = mongoose.Schema({
+    report:{
+        type:String,
+    },
+    user:{
+        type:ObjectID,
+        ref:'users'
+    },
+    date:{
+        type: Date,
+        default:Date.now()
+    }
+})
+export const reportCollection = mongoose.model('report',report)
