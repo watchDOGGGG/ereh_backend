@@ -48,4 +48,4 @@
 #     "report":"This post is fucking bad delete it fast"
 # }
 
-GET http://localhost:1300/v1/api/getreports HTTP/1.1
+# GET http://localhost:1300/v1/api/getreports HTTP/1.1
