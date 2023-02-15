@@ -21,4 +21,4 @@ app.use('/v1/api',Routes)
 
 app.listen(1300,() =>{
     console.log('app started on port 1300')
-})
+}) 
