@@ -10,8 +10,8 @@ const app = express()
 Db_connection()
 
 app.use(express())
-app.use(cors())
 app.use(express.json())
+app.use(cors())
 app.use('/files',express.static('./'))
 app.use('/v1/api',Routes)
 
