@@ -51,7 +51,8 @@ export class User {
             fullname: fullname,
             email: email,
             username: username,
-            password: new_password
+            password: new_password,
+            role:'USER'
         })
 
         if (!createuser) {
@@ -62,6 +63,7 @@ export class User {
 
     static async Login(req, res) {
         const { email, password } = req.body
+        const new_date = Date.now()
         const request = await User.checkUser('email',email)
         if (!request) {
             return res.status(404).send({ message: "user not found" })
@@ -71,8 +73,14 @@ export class User {
             return res.status(401).send({ message: "incorrect password" })
         }
         const token = AccessToken.GenerateToken(request)
-        res.status(200).send({ message: token, user: request })
-        return
+
+        const updateLogin = await userCollection.updateOne({email:email},{$set:{lastvisit:new_date}})
+        
+        if(updateLogin){
+            res.status(200).send({ message: token, user: request })
+            return
+        }
+        res.status(500).send({message:'error updating login info'})
 
     }
 

@@ -25,6 +25,14 @@ const user = mongoose.Schema({
     date:{
         type: Date,
         default:Date.now()
+    },
+    profile:{
+        type: String,
+    },
+
+    lastvisit:{
+        type: Date,
+        default:Date.now()
     }
 })
 
@@ -34,6 +42,10 @@ const topic  = mongoose.Schema({
     user:{
         type: ObjectID,
         ref:'users'
+    },
+    role:{
+        type:String,
+        enum: ['USER', 'ROLE']
     },
     topic:{
         type: String,
@@ -74,7 +86,8 @@ const topic  = mongoose.Schema({
     date:{
         type: Date,
         default:Date.now()
-    }
+    },
+   
 
 })
 
