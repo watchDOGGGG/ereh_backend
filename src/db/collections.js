@@ -26,7 +26,7 @@ const user = mongoose.Schema({
         type: Date,
         default:Date.now()
     },
-    profile:{
+    profileimg:{
         type: String,
     },
 
@@ -81,7 +81,7 @@ const topic  = mongoose.Schema({
     },
     status:{
         type:String,
-        enum:['pending','approve','reject']
+        enum:['PENDING','APPROVED','REJECT']
     },
     date:{
         type: Date,
@@ -108,3 +108,15 @@ const report = mongoose.Schema({
     }
 })
 export const reportCollection = mongoose.model('report',report)
+
+
+const category = mongoose.Schema({
+    category:{
+        type:String,
+    },
+    date:{
+        type: Date,
+        default:Date.now()
+    }
+})
+export const categoryCollection = mongoose.model('category',category)

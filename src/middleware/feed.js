@@ -1,11 +1,11 @@
-import { topicCollection } from "../db/collections.js";
+import { categoryCollection, topicCollection } from "../db/collections.js";
 
 export class Topic{
 
     static async checkTopic(data){
         const request = await topicCollection.findOne({_id:data}).populate({
             path:'user',
-            select:''
+            select:'-password -lastvisit'
         })
         if(!request){
             return false
@@ -44,7 +44,7 @@ export class Topic{
     }
 
     static async getTopics(req,res){
-        const request = await topicCollection.find({status:'approve'})
+        const request = await topicCollection.find({status:'APPROVED'})
 
         if(request.length < 1){
             return res.status(200).send({message:'no post available yet'})
@@ -87,4 +87,30 @@ export class Topic{
     }
     return res.status(200).send({message:'topic successfully deleted'})
    }
+
+   static async CreateCate(req,res){
+    const {category} = req.body
+    const request = await categoryCollection.findOne({ category:category})
+    if(request){
+        return res.status(400).send({messgae:'category already exists'})
+    }
+    const create = await categoryCollection.create({ category:category})
+    if(!create){
+        return res.status(500).send({messgae:'error adding category'})
+    }
+    return res.status(200).send({messgae:'success adding category'})
+   }
+
+   static async GetCatgories(req,res){
+    const request = await categoryCollection.find()
+    if(request){
+        return res.status(200).send({messgae:request})
+    }
+    
+   }
+
+   static async MakeComment(req,res){
+    const {user,text,topicId} = req.body
+   }
+
 }

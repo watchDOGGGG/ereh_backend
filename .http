@@ -39,13 +39,14 @@
 # GET http://localhost:1300/v1/api/totalmembers HTTP/1.1
 # Content-Type: application/json
 
-# GET http://localhost:1300/v1/api/userprofile/63cb8baee17dc0806141206c HTTP/1.1
 
-# POST http://localhost:1300/v1/api/report HTTP/1.1
-# Content-Type: application/json
+GET http://localhost:1300/v1/api/userprofile/63fe67d7ddd06a0098e6c364 HTTP/1.1
 
-# {
-#     "report":"This post is fucking bad delete it fast"
-# }
+POST http://localhost:1300/v1/api/report HTTP/1.1
+Content-Type: application/json
 
-# GET http://localhost:1300/v1/api/getreports HTTP/1.1
+{
+    "report":"This post is fucking bad delete it fast"
+}
+
+GET http://localhost:1300/v1/api/getreports HTTP/1.1
