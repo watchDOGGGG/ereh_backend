@@ -25,7 +25,12 @@ const user = mongoose.Schema({
     profileimg:{
         type: String,
     },
-
+    phone:{
+        type: String
+    },
+    bio:{
+        type: String
+    },
     lastvisit:{
         type: Date,
         default:Date.now()

@@ -53,6 +53,8 @@ export class User {
             username: username,
             password: new_password,
             profileimg: "",
+            phone: "",
+            bio: "",
             role: 'USER'
         })
 
@@ -100,19 +102,26 @@ export class User {
     }
 
     static async totalNumberofMembers(req, res) {
-        const members = await userCollection.find().countDocuments()
+        const members = await userCollection.find({ role: { $ne: 'admin' } }).countDocuments()
         return res.status(200).send({ message: members })
     }
 
+    static async AllMembers(req, res) {
+        const members = await userCollection.find({ role: { $ne: 'admin' } }).select("-password")
+        return res.status(200).send({ message: members })
+    }
+
+
     static async userProfile(req, res) {
-        const request = await User.checkUser('id', req.params.user)
+        const request = await User.checkUser('id', req.params.userid)
+    
         let topics;
 
         if (!request) {
             return res.status(404).send({ message: 'user not available' })
         }
 
-        const fetchTopic = await topicCollection.find({ user: req.params.user })
+        const fetchTopic = await topicCollection.find({ user: req.params.userid })
             .populate({ path: 'user', select: '' })
         if (fetchTopic.length < 1) {
             topics = "no topic yet"
@@ -124,9 +133,10 @@ export class User {
 
     }
 
+
     static async LoginWithGoogle(req, res) {
 
-        const { email,fullname,profileimg,username } = req.body
+        const { email, fullname, profileimg, username } = req.body
 
         const new_date = Date.now()
         const request = await userCollection.findOne({ email: email })
@@ -138,13 +148,15 @@ export class User {
                 username: username,
                 password: "",
                 profileimg: profileimg,
+                phone: "",
+                bio: "",
                 role: 'USER'
             })
 
             if (!createuser) {
                 return res.status(500).send({ message: 'error creating user' })
             }
-            const token = AccessToken.GenerateToken(request)
+            const token = AccessToken.GenerateToken(createuser)
 
             const updateLogin = await userCollection.updateOne({ email: email }, { $set: { lastvisit: new_date } })
 
@@ -152,7 +164,7 @@ export class User {
                 res.status(200).send({ message: token, user: createuser })
                 return
             }
-           return  res.status(500).send({ message: 'error updating login info' })
+            return res.status(500).send({ message: 'error updating login info' })
         }
 
         const token = AccessToken.GenerateToken(request)
