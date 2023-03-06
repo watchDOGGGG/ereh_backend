@@ -28,7 +28,7 @@ export class User {
     }
 
     static async getuser(req, res) {
-        const request = await User.checkUser('id',req.params.user)
+        const request = await User.checkUser('id', req.params.user)
         if (request === false) {
             return res.status(400).send({ message: 'user not found' })
         }
@@ -41,7 +41,7 @@ export class User {
         const salt = await bcrypt.genSalt(10)
         const new_password = await bcrypt.hash(password, salt)
 
-        const request = await User.checkUser('email',email)
+        const request = await User.checkUser('email', email)
 
         if (request !== false) {
             return res.status(400).send({ message: 'user with this email or username already exist' })
@@ -52,8 +52,8 @@ export class User {
             email: email,
             username: username,
             password: new_password,
-            profileimg:"",
-            role:'USER'
+            profileimg: "",
+            role: 'USER'
         })
 
         if (!createuser) {
@@ -63,9 +63,9 @@ export class User {
     }
 
     static async Login(req, res) {
-         
+
         const { email, password } = req.body
-        
+
         const new_date = Date.now()
         const request = await userCollection.findOne({ email: email })
 
@@ -73,24 +73,24 @@ export class User {
             return res.status(404).send({ message: "user not found" })
         }
         const verify_password = await bcrypt.compare(password, request.password)
-      
+
         if (!verify_password) {
             return res.status(401).send({ message: "incorrect password" })
         }
         const token = AccessToken.GenerateToken(request)
 
-        const updateLogin = await userCollection.updateOne({email:email},{$set:{lastvisit:new_date}})
-        
-        if(updateLogin){
+        const updateLogin = await userCollection.updateOne({ email: email }, { $set: { lastvisit: new_date } })
+
+        if (updateLogin) {
             res.status(200).send({ message: token, user: request })
             return
         }
-        res.status(500).send({message:'error updating login info'})
+        res.status(500).send({ message: 'error updating login info' })
 
     }
 
     static async totalNumberofTopicperuser(req, res) {
-        const request = await User.checkUser('id',req.params.user)
+        const request = await User.checkUser('id', req.params.user)
         console.log(request)
         if (request === false) {
             return res.status(404).send({ message: 'user not available' })
@@ -105,7 +105,7 @@ export class User {
     }
 
     static async userProfile(req, res) {
-        const request = await User.checkUser('id',req.params.user)
+        const request = await User.checkUser('id', req.params.user)
         let topics;
 
         if (!request) {
@@ -125,25 +125,45 @@ export class User {
     }
 
     static async LoginWithGoogle(req, res) {
-         
-        const { email } = req.body
-        
+
+        const { email,fullname,profileimg,username } = req.body
+
         const new_date = Date.now()
         const request = await userCollection.findOne({ email: email })
 
         if (!request) {
-            return res.status(404).send({ message: "user not found" })
+            const createuser = await userCollection.create({
+                fullname: fullname,
+                email: email,
+                username: username,
+                password: "",
+                profileimg: profileimg,
+                role: 'USER'
+            })
+
+            if (!createuser) {
+                return res.status(500).send({ message: 'error creating user' })
+            }
+            const token = AccessToken.GenerateToken(request)
+
+            const updateLogin = await userCollection.updateOne({ email: email }, { $set: { lastvisit: new_date } })
+
+            if (updateLogin) {
+                res.status(200).send({ message: token, user: createuser })
+                return
+            }
+           return  res.status(500).send({ message: 'error updating login info' })
         }
-        
+
         const token = AccessToken.GenerateToken(request)
 
-        const updateLogin = await userCollection.updateOne({email:email},{$set:{lastvisit:new_date}})
-        
-        if(updateLogin){
+        const updateLogin = await userCollection.updateOne({ email: email }, { $set: { lastvisit: new_date } })
+
+        if (updateLogin) {
             res.status(200).send({ message: token, user: request })
             return
         }
-        res.status(500).send({message:'error updating login info'})
+        res.status(500).send({ message: 'error updating login info' })
 
     }
 
