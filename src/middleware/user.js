@@ -114,7 +114,7 @@ export class User {
 
     static async userProfile(req, res) {
         const request = await User.checkUser('id', req.params.userid)
-    
+
         let topics;
 
         if (!request) {
@@ -175,8 +175,39 @@ export class User {
             res.status(200).send({ message: token, user: request })
             return
         }
-        res.status(500).send({ message: 'error updating login info' })
+        return res.status(500).send({ message: 'error updating login info' })
 
+    }
+
+    static async updateAccount(req, res) {
+        const { phone, email } = req.body
+
+        if (phone && email){
+            await userCollection.updateOne({ _id: req.user._id }, { $set: { phone: phone, email:email } })
+            return res.status(200).send({ message: 'phone and email updated' })
+        }else if (phone) {
+            await userCollection.updateOne({ _id: req.user._id }, { $set: { phone: phone } })
+            return res.status(200).send({ message: 'phone updated' })
+        }else if (email) {
+            await userCollection.updateOne({ _id: req.user._id }, { $set: { email: email } })
+            return res.status(200).send({ message: 'email updated' })
+        }else{
+            return res.status(400).send({message:'please pass email or phone to update account'})
+        }
+    }
+
+    static async changePassword(req, res) {
+        const { password } = req.body
+
+        if (password){
+            const salt = await bcrypt.genSalt(10)
+            const new_password = await bcrypt.hash(password, salt) 
+
+            await userCollection.updateOne({ _id: req.user._id }, { $set: { password:new_password } })
+            return res.status(200).send({ message: 'password updated successfully' })
+        }else{
+            return res.status(400).send({message:'please no empty field'})
+        }
     }
 
 }

@@ -46,7 +46,7 @@ const topic  = mongoose.Schema({
     },
     role:{
         type:String,
-        enum: ['USER', 'ROLE']
+        enum: ['USER', 'admin']
     },
     topic:{
         type: String,
