@@ -45,7 +45,7 @@ export class Topic {
 
     static async getTopics(req, res) {
         if (req.params.role === 'admin') {
-            const request = await topicCollection.find()
+            const request = await topicCollection.find().populate({path:'user', select:"-password"})
 
             if (request.length < 1) {
                 return res.status(200).send({ message: 'no post available yet' })
@@ -53,7 +53,7 @@ export class Topic {
             return res.status(200).send({ message: request })
         }
 
-        const request = await topicCollection.find({ status: 'APPROVED' })
+        const request = await topicCollection.find({ status: 'APPROVED' }).populate({path:'user', select:"-password"})
 
         if (request.length < 1) {
             return res.status(200).send({ message: 'no post available yet' })
