@@ -77,7 +77,7 @@ const topic  = mongoose.Schema({
             },
         }
     ],
-    file:{
+    image:{
         type:String
     },
     status:{

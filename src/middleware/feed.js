@@ -23,15 +23,14 @@ export class Topic {
 
     static async createTopic(req, res) {
 
-        const { topic, description, category } = req.body
-        // const path = `${process.env.LocalURL}/files/upload/${req.file.filename}`;
-
+        const { topic, description, category, path } = req.body
+        
         const createTopic = await topicCollection.create({
             user: req.user._id,
             topic: topic,
             description: description,
             category: category,
-            // file:path,
+            image:path,
             reaction: [],
             comment: [],
             status: 'PENDING'

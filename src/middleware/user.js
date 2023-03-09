@@ -210,5 +210,9 @@ export class User {
         }
     }
 
+    static async userSettings(req, res) {
+        
+    }
+
 }
 
