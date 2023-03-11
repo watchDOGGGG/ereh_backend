@@ -211,7 +211,34 @@ export class User {
     }
 
     static async userSettings(req, res) {
-        
+        const {path, fullname, username, email, phone, bio } = req.body
+
+        if(path){
+            await userCollection.updateOne({_id:req.user._id},{$set:{profileimg:path}})
+        }
+        if(fullname){
+            await userCollection.updateOne({_id:req.user._id},{$set:{fullname:fullname}})
+        }
+        if(username){
+            //check if user name exist
+            const checkusername = await userCollection.findOne({username:username})
+            if(checkusername){
+                return res.status(400).send({message:"username already exist"})
+            }
+            await userCollection.updateOne({_id:req.user._id},{$set:{username:username}})
+
+        }
+        if(email){
+            await userCollection.updateOne({_id:req.user._id},{$set:{email:email}})
+        }
+        if(bio){
+            await userCollection.updateOne({_id:req.user._id},{$set:{bio:bio}})
+        }
+        if(phone){
+            await userCollection.updateOne({_id:req.user._id},{$set:{phone:phone}})
+        }
+
+        return res.status(200).send({message:'updated successfully'})
     }
 
 }

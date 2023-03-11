@@ -24,13 +24,13 @@ export class Topic {
     static async createTopic(req, res) {
 
         const { topic, description, category, path } = req.body
-        
+
         const createTopic = await topicCollection.create({
             user: req.user._id,
             topic: topic,
             description: description,
             category: category,
-            image:path,
+            image: path,
             reaction: [],
             comment: [],
             status: 'PENDING'
@@ -44,7 +44,7 @@ export class Topic {
 
     static async getTopics(req, res) {
         if (req.params.role === 'admin') {
-            const request = await topicCollection.find().populate({path:'user', select:"-password"})
+            const request = await topicCollection.find().populate({ path: 'user', select: "-password" }).sort({ date: -1 })
 
             if (request.length < 1) {
                 return res.status(200).send({ message: 'no post available yet' })
@@ -52,7 +52,7 @@ export class Topic {
             return res.status(200).send({ message: request })
         }
 
-        const request = await topicCollection.find({ status: 'APPROVED' }).populate({path:'user', select:"-password"})
+        const request = await topicCollection.find({ status: 'APPROVED' }).populate({ path: 'user', select: "-password" }).sort({ date: -1 })
 
         if (request.length < 1) {
             return res.status(200).send({ message: 'no post available yet' })
@@ -73,6 +73,13 @@ export class Topic {
         const request = await Topic.checkTopic(req.params.topicid)
         if (!request) {
             return res.status(404).send({ message: 'this topic is not available' })
+        }
+        if (status == 'REJECT') {
+            const deleteTopic = await topicCollection.deleteOne({ _id: req.params.topicid })
+            if (deleteTopic) {
+                return res.status(200).send({ message: 'updated successfully' })
+            }
+            return res.status(500).send({ message: 'error updating status' })
         }
         const update = await topicCollection.updateOne({ _id: req.params.topicid }, { $set: { status: status } })
         if (update.modifiedCount > 0) {
@@ -118,7 +125,49 @@ export class Topic {
     }
 
     static async MakeComment(req, res) {
-        const { user, text, topicId } = req.body
+        const { comment_userto, text, topicId, type, comment_id } = req.body      
+
+        if (type == 'reply') {
+            if (!comment_userto) {
+                return res.status(400).send({ message: 'add a user your making the reply to' })
+            }
+
+            const CreateComment = await topicCollection.updateOne({ _id: topicId, 'comment._id':comment_id },
+                { $push: { 'comment.$.reply': { from: req.user._id, to: comment_userto, text: text } } })
+                await topicCollection.updateOne({ _id: topicId },
+                    { $inc: { comment_count: 1 } })
+
+            if (!CreateComment) {
+                return res.status(500).send({ message: 'error creating comment' })
+            }
+            return res.status(201).send({ message: 'reply created' })
+        }
+
+        if (!comment_userto) {
+            return res.status(400).send({ message: 'add a user your making the comment to' })
+        }
+
+        const CreateComment = await topicCollection.updateOne({ _id: topicId },
+            { $push: { comment: { from: req.user._id, to: comment_userto, text: text } } })
+            await topicCollection.updateOne({ _id: topicId },
+                { $inc: { comment_count: 1 } })
+
+        if (!CreateComment) {
+            return res.status(500).send({ message: 'error creating comment' })
+        }
+        return res.status(201).send({ message: 'comment created' })
+    }
+
+    static async MakeReaction(req,res){
+        const {topicId, emojiname} = req.body
+
+        const addReaction = await topicCollection.updateOne({_id:topicId},{$addToSet:{reaction:{user:req.user._id, emojiname:emojiname}}})
+        await topicCollection.updateOne({ _id: topicId },
+            { $inc: { reaction_count: 1 } })
+        if(!addReaction){
+            return res.status(500).send({ message: 'error creating comment' })
+        }
+        return res.status(200).send({ message: 'reacted' })
     }
 
     static async totalNumberofTopics(req, res) {

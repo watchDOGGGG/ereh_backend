@@ -2,122 +2,158 @@ import mongoose from "mongoose";
 const ObjectID = mongoose.Types.ObjectId
 
 const user = mongoose.Schema({
-    fullname:{
+    fullname: {
         type: String,
     },
-    email:{
+    email: {
         type: String,
     },
-    password:{
+    password: {
         type: String,
     },
-    username:{
+    username: {
         type: String,
     },
-    role:{
+    role: {
         type: String,
-        enum:['ADMIN','USER']
+        enum: ['ADMIN', 'USER']
     },
-    date:{
+    date: {
         type: Date,
-        default:Date.now()
+        default: Date.now()
     },
-    profileimg:{
+    profileimg: {
         type: String,
     },
-    phone:{
+    phone: {
         type: String
     },
-    bio:{
+    bio: {
         type: String
     },
-    lastvisit:{
+    lastvisit: {
         type: Date,
-        default:Date.now()
+        default: Date.now()
     }
 })
 
-export const userCollection = mongoose.model('users',user)
+export const userCollection = mongoose.model('users', user)
 
-const topic  = mongoose.Schema({
-    user:{
+const topic = mongoose.Schema({
+    user: {
         type: ObjectID,
-        ref:'users'
+        ref: 'users'
     },
-    role:{
-        type:String,
+    role: {
+        type: String,
         enum: ['USER', 'admin']
     },
-    topic:{
+    topic: {
         type: String,
     },
-    category:{
+    category: {
         type: String,
     },
     description: {
         type: String,
     },
-    reaction:[
+    reaction: [
         {
-            user:{
+            user: {
                 type: ObjectID,
-                ref:'users'
+                ref: 'users'
+            },
+            emojiname:{
+                type: String
             }
         }
     ],
 
-    comment:[
+    comment: [
         {
-            user:{
+            from: {
                 type: ObjectID,
-                ref:'users' 
+                ref: 'users'
             },
-            text:{
-                text:String
+            text: {
+                type: String
             },
+            date:{
+                type: Date,
+                default: Date.now()
+            },
+            to: {
+                type: ObjectID,
+                ref: 'users'
+            },
+            reply: [
+                {
+                    from: {
+                        type: ObjectID,
+                        ref: 'users'
+                    },
+                    to: {
+                        type: ObjectID,
+                        ref: 'users'
+                    },
+                    text: {
+                        type: String
+                    },
+                    date:{
+                        type: Date,
+                        default: Date.now()
+                    },
+                }
+            ]
         }
     ],
-    image:{
-        type:String
+    image: {
+        type: String
     },
-    status:{
-        type:String,
-        enum:['PENDING','APPROVED','REJECT']
+    status: {
+        type: String,
+        enum: ['PENDING', 'APPROVED', 'REJECT']
     },
-    date:{
+    date: {
         type: Date,
-        default:Date.now()
+        default: Date.now()
     },
-   
+
+    comment_count:{
+        type:Number
+    },
+    reaction_count:{
+        type:Number
+    }
 
 })
 
-export const topicCollection = mongoose.model('topic',topic)
+export const topicCollection = mongoose.model('topic', topic)
 
 
 const report = mongoose.Schema({
-    report:{
-        type:String,
+    report: {
+        type: String,
     },
-    user:{
-        type:ObjectID,
-        ref:'users'
+    user: {
+        type: ObjectID,
+        ref: 'users'
     },
-    date:{
+    date: {
         type: Date,
-        default:Date.now()
+        default: Date.now()
     }
 })
-export const reportCollection = mongoose.model('report',report)
+export const reportCollection = mongoose.model('report', report)
 
 
 const category = mongoose.Schema({
-    category:{
-        type:String,
+    category: {
+        type: String,
     },
-    date:{
+    date: {
         type: Date,
-        default:Date.now()
+        default: Date.now()
     }
 })
-export const categoryCollection = mongoose.model('category',category)
+export const categoryCollection = mongoose.model('category', category)
