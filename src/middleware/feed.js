@@ -1,4 +1,4 @@
-import { categoryCollection, topicCollection } from "../db/collections.js";
+import { categoryCollection, SaveCollection, topicCollection } from "../db/collections.js";
 
 export class Topic {
 
@@ -125,17 +125,17 @@ export class Topic {
     }
 
     static async MakeComment(req, res) {
-        const { comment_userto, text, topicId, type, comment_id } = req.body      
+        const { comment_userto, text, topicId, type, comment_id } = req.body
 
         if (type == 'reply') {
             if (!comment_userto) {
                 return res.status(400).send({ message: 'add a user your making the reply to' })
             }
 
-            const CreateComment = await topicCollection.updateOne({ _id: topicId, 'comment._id':comment_id },
+            const CreateComment = await topicCollection.updateOne({ _id: topicId, 'comment._id': comment_id },
                 { $push: { 'comment.$.reply': { from: req.user._id, to: comment_userto, text: text } } })
-                await topicCollection.updateOne({ _id: topicId },
-                    { $inc: { comment_count: 1 } })
+            await topicCollection.updateOne({ _id: topicId },
+                { $inc: { comment_count: 1 } })
 
             if (!CreateComment) {
                 return res.status(500).send({ message: 'error creating comment' })
@@ -149,8 +149,8 @@ export class Topic {
 
         const CreateComment = await topicCollection.updateOne({ _id: topicId },
             { $push: { comment: { from: req.user._id, to: comment_userto, text: text } } })
-            await topicCollection.updateOne({ _id: topicId },
-                { $inc: { comment_count: 1 } })
+        await topicCollection.updateOne({ _id: topicId },
+            { $inc: { comment_count: 1 } })
 
         if (!CreateComment) {
             return res.status(500).send({ message: 'error creating comment' })
@@ -158,14 +158,28 @@ export class Topic {
         return res.status(201).send({ message: 'comment created' })
     }
 
-    static async MakeReaction(req,res){
-        const {topicId, emojiname} = req.body
+    static async MakeReaction(req, res) {
+        const { topicId, emojiname } = req.body
 
-        const addReaction = await topicCollection.updateOne({_id:topicId},{$addToSet:{reaction:{user:req.user._id, emojiname:emojiname}}})
+        //check if user has already liked
+        const checkReaction = await topicCollection.findOne(
+            { _id: topicId, reaction: { $elemMatch: { user: req.user._id } } }
+        )
+        if (checkReaction) {
+            const removeReaction = await topicCollection.updateOne({ _id: topicId }, { $pull: { reaction: { user: req.user._id } } })
+            await topicCollection.updateOne({ _id: topicId },
+                { $inc: { reaction_count: 1 } })
+            if (!removeReaction) {
+                return res.status(500).send({ message: 'error reaction' })
+            }
+            return res.status(200).send({ message: 'reacted' })
+        }
+
+        const addReaction = await topicCollection.updateOne({ _id: topicId }, { $addToSet: { reaction: { user: req.user._id, emojiname: emojiname } } })
         await topicCollection.updateOne({ _id: topicId },
             { $inc: { reaction_count: 1 } })
-        if(!addReaction){
-            return res.status(500).send({ message: 'error creating comment' })
+        if (!addReaction) {
+            return res.status(500).send({ message: 'error reaction' })
         }
         return res.status(200).send({ message: 'reacted' })
     }
@@ -175,4 +189,70 @@ export class Topic {
         return res.status(200).send({ message: topics })
     }
 
+    static async SavePost(req, res) {
+        const { topicId } = req.body
+
+        const checkUserSave = await SaveCollection.findOne({ user: req.user._id, topicId: topicId })
+        if (!checkUserSave) {
+            const createSave = await SaveCollection.create({
+                user: req.user._id,
+                topicId: topicId
+            })
+
+            if (!createSave) {
+                s
+                return res.status(500).send({ message: "error saving post" })
+            }
+            return res.status(200).send({ message: "saved" })
+        }
+        const deletePost = await SaveCollection.deleteOne({ user: req.user._id, topicId: topicId })
+        if (deletePost) {
+            return res.status(200).send({ message: "unsave" })
+        }
+
+    }
+
+    static async getSavedPost(req, res) {
+        const checkUserSave = await SaveCollection.find({ user: req.user._id }).populate({ path: 'topicId', select: "" }).populate({ path: 'user', select: "" })
+        if (!checkUserSave) {
+
+            return res.status(204).send({ message: "error saving post" })
+
+        }
+        return res.status(200).send({ message: checkUserSave })
+    }
+
+    static async getTrendingTopics(req, res) {
+        const FindMax = await topicCollection.find({
+            $and: [{ comment_count: { $gt: 0 } }],
+        })
+            .sort({ engagement: -1 })
+            .limit(100)
+            .populate({
+                path: "user",
+                select: "-password",
+            });
+
+        return res.status(200).send({ message: FindMax });
+    }
+
+    static async topContributors(req, res) {
+        const getContributors = await topicCollection.aggregate([
+            { $group: { _id: "$user", count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $lookup: { from: "users", localField: "_id", foreignField: "_id", as: "user" } },
+            { $unwind: "$user" },
+            { $project: { _id: "$user._id", name: "$user.fullname", email: "$user.email", profileimg:"$user.profileimg", count: 1 } }
+          ]).exec();
+
+        if (!getContributors) {
+            return res.status(500).send({ message: "Can't get contributors" });
+        }
+        getContributors.sort((a, b) => b.count - a.count);
+
+        return res.status(200).send({ message: getContributors });
+
+    }
 }
+
+

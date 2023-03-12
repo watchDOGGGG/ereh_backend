@@ -63,7 +63,7 @@ const topic = mongoose.Schema({
                 type: ObjectID,
                 ref: 'users'
             },
-            emojiname:{
+            emojiname: {
                 type: String
             }
         }
@@ -78,7 +78,7 @@ const topic = mongoose.Schema({
             text: {
                 type: String
             },
-            date:{
+            date: {
                 type: Date,
                 default: Date.now()
             },
@@ -99,7 +99,7 @@ const topic = mongoose.Schema({
                     text: {
                         type: String
                     },
-                    date:{
+                    date: {
                         type: Date,
                         default: Date.now()
                     },
@@ -119,11 +119,11 @@ const topic = mongoose.Schema({
         default: Date.now()
     },
 
-    comment_count:{
-        type:Number
+    comment_count: {
+        type: Number
     },
-    reaction_count:{
-        type:Number
+    reaction_count: {
+        type: Number
     }
 
 })
@@ -157,3 +157,16 @@ const category = mongoose.Schema({
     }
 })
 export const categoryCollection = mongoose.model('category', category)
+
+
+const bookMark = mongoose.Schema({
+    user: {
+        type: ObjectID,
+        ref: 'users'
+    },
+    topicId:{
+        type: ObjectID,
+        ref: 'topic'
+    }
+})
+export const SaveCollection = mongoose.model('bookmark', bookMark)
