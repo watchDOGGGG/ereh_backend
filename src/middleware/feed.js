@@ -44,7 +44,9 @@ export class Topic {
 
     static async getTopics(req, res) {
         if (req.params.role === 'admin') {
-            const request = await topicCollection.find().populate({ path: 'user', select: "-password" }).sort({ date: -1 })
+            const request = await topicCollection.find().populate({ path: 'user comment.from comment.to comment.reply.from comment.reply.to', select: "-password",
+        model:'users'
+        }).sort({ "comment.date": -1, date: -1 });
 
             if (request.length < 1) {
                 return res.status(200).send({ message: 'no post available yet' })
@@ -52,7 +54,9 @@ export class Topic {
             return res.status(200).send({ message: request })
         }
 
-        const request = await topicCollection.find({ status: 'APPROVED' }).populate({ path: 'user', select: "-password" }).sort({ date: -1 })
+        const request = await topicCollection.find({ status: 'APPROVED' }).populate({ path: 'user comment.from comment.to comment.reply.from comment.reply.to',
+        model:'users',
+        select: "-password" }).sort({ "comment.date": -1, date: -1 });
 
         if (request.length < 1) {
             return res.status(200).send({ message: 'no post available yet' })
