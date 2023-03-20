@@ -162,7 +162,7 @@ export class Topic {
         if (!CreateComment) {
             return res.status(500).send({ message: 'error creating comment' })
         }
-        return res.status(201).send({ message: 'comment created' })
+        return res.status(201).send({ message: CreateComment })
     }
 
     static async MakeReaction(req, res) {

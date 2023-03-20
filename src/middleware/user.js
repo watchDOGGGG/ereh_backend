@@ -122,7 +122,11 @@ export class User {
         }
 
         const fetchTopic = await topicCollection.find({ user: req.params.userid })
-            .populate({ path: 'user', select: '' })
+        .populate({
+            path: 'user comment.from comment.to comment.reply.from comment.reply.to',
+            model: 'users',
+            select: "-password"
+        }).sort({ "comment.date": -1, date: -1 })
         if (fetchTopic.length < 1) {
             topics = "no topic yet"
         } else {
@@ -239,6 +243,18 @@ export class User {
         }
 
         return res.status(200).send({message:'updated successfully'})
+    }
+
+    static async ForgotPassword(req,res) {
+        const {email} = req.body
+
+        const checkIfEmailExist = await userCollection.findOne({email:email})
+        if(!checkIfEmailExist){
+            return res.status(400).send({message:"user with this email does not exist"})
+        }
+
+        //send mail to users
+        
     }
 
 }
