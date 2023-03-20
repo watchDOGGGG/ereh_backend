@@ -44,9 +44,10 @@ export class Topic {
 
     static async getTopics(req, res) {
         if (req.params.role === 'admin') {
-            const request = await topicCollection.find().populate({ path: 'user comment.from comment.to comment.reply.from comment.reply.to', select: "-password",
-        model:'users'
-        }).sort({ "comment.date": -1, date: -1 });
+            const request = await topicCollection.find().populate({
+                path: 'user comment.from comment.to comment.reply.from comment.reply.to', select: "-password",
+                model: 'users'
+            }).sort({ "comment.date": -1, date: -1 });
 
             if (request.length < 1) {
                 return res.status(200).send({ message: 'no post available yet' })
@@ -54,9 +55,11 @@ export class Topic {
             return res.status(200).send({ message: request })
         }
 
-        const request = await topicCollection.find({ status: 'APPROVED' }).populate({ path: 'user comment.from comment.to comment.reply.from comment.reply.to',
-        model:'users',
-        select: "-password" }).sort({ "comment.date": -1, date: -1 });
+        const request = await topicCollection.find({ status: 'APPROVED' }).populate({
+            path: 'user comment.from comment.to comment.reply.from comment.reply.to',
+            model: 'users',
+            select: "-password"
+        }).sort({ "comment.date": -1, date: -1 });
 
         if (request.length < 1) {
             return res.status(200).send({ message: 'no post available yet' })
@@ -204,7 +207,6 @@ export class Topic {
             })
 
             if (!createSave) {
-                s
                 return res.status(500).send({ message: "error saving post" })
             }
             return res.status(200).send({ message: "saved" })
@@ -233,9 +235,9 @@ export class Topic {
             .sort({ engagement: -1 })
             .limit(100)
             .populate({
-                path: "user",
-                select: "-password",
-            });
+                path: 'user comment.from comment.to comment.reply.from comment.reply.to', select: "-password",
+                model: 'users'
+            }).sort({ "comment.date": -1, date: -1 });
 
         return res.status(200).send({ message: FindMax });
     }
@@ -246,8 +248,8 @@ export class Topic {
             { $sort: { count: -1 } },
             { $lookup: { from: "users", localField: "_id", foreignField: "_id", as: "user" } },
             { $unwind: "$user" },
-            { $project: { _id: "$user._id", name: "$user.fullname", email: "$user.email", profileimg:"$user.profileimg", count: 1 } }
-          ]).exec();
+            { $project: { _id: "$user._id", name: "$user.fullname", email: "$user.email", profileimg: "$user.profileimg", count: 1 } }
+        ]).exec();
 
         if (!getContributors) {
             return res.status(500).send({ message: "Can't get contributors" });
@@ -256,6 +258,18 @@ export class Topic {
 
         return res.status(200).send({ message: getContributors });
 
+    }
+
+    static async checkBookMark(req, res) {
+        try {
+            const checkBookMark = await SaveCollection.findOne({ topicId: req.params.topicid, user: req.user._id })
+            if (!checkBookMark) {
+                return res.status(200).send({ message: false })
+            }
+            return res.status(200).send({ message: true })
+        } catch (error) {
+            return res.status(500).send({ message: error })
+        }
     }
 }
 
