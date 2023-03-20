@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import { verify } from "jsonwebtoken"
 import { AccessToken } from "./helper/jwt.js"
 import { Topic } from "./feed.js"
+import { sendMail } from "./helper/mail.js"
 
 export class User {
 
@@ -122,11 +123,11 @@ export class User {
         }
 
         const fetchTopic = await topicCollection.find({ user: req.params.userid })
-        .populate({
-            path: 'user comment.from comment.to comment.reply.from comment.reply.to',
-            model: 'users',
-            select: "-password"
-        }).sort({ "comment.date": -1, date: -1 })
+            .populate({
+                path: 'user comment.from comment.to comment.reply.from comment.reply.to',
+                model: 'users',
+                select: "-password"
+            }).sort({ "comment.date": -1, date: -1 })
         if (fetchTopic.length < 1) {
             topics = "no topic yet"
         } else {
@@ -186,75 +187,118 @@ export class User {
     static async updateAccount(req, res) {
         const { phone, email } = req.body
 
-        if (phone && email){
-            await userCollection.updateOne({ _id: req.user._id }, { $set: { phone: phone, email:email } })
+        if (phone && email) {
+            await userCollection.updateOne({ _id: req.user._id }, { $set: { phone: phone, email: email } })
             return res.status(200).send({ message: 'phone and email updated' })
-        }else if (phone) {
+        } else if (phone) {
             await userCollection.updateOne({ _id: req.user._id }, { $set: { phone: phone } })
             return res.status(200).send({ message: 'phone updated' })
-        }else if (email) {
+        } else if (email) {
             await userCollection.updateOne({ _id: req.user._id }, { $set: { email: email } })
             return res.status(200).send({ message: 'email updated' })
-        }else{
-            return res.status(400).send({message:'please pass email or phone to update account'})
+        } else {
+            return res.status(400).send({ message: 'please pass email or phone to update account' })
         }
     }
 
     static async changePassword(req, res) {
         const { password } = req.body
 
-        if (password){
+        if (password) {
             const salt = await bcrypt.genSalt(10)
-            const new_password = await bcrypt.hash(password, salt) 
+            const new_password = await bcrypt.hash(password, salt)
 
-            await userCollection.updateOne({ _id: req.user._id }, { $set: { password:new_password } })
+            await userCollection.updateOne({ _id: req.user._id }, { $set: { password: new_password } })
             return res.status(200).send({ message: 'password updated successfully' })
-        }else{
-            return res.status(400).send({message:'please no empty field'})
+        } else {
+            return res.status(400).send({ message: 'please no empty field' })
         }
     }
 
     static async userSettings(req, res) {
-        const {path, fullname, username, email, phone, bio } = req.body
+        const { path, fullname, username, email, phone, bio } = req.body
 
-        if(path){
-            await userCollection.updateOne({_id:req.user._id},{$set:{profileimg:path}})
+        if (path) {
+            await userCollection.updateOne({ _id: req.user._id }, { $set: { profileimg: path } })
         }
-        if(fullname){
-            await userCollection.updateOne({_id:req.user._id},{$set:{fullname:fullname}})
+        if (fullname) {
+            await userCollection.updateOne({ _id: req.user._id }, { $set: { fullname: fullname } })
         }
-        if(username){
+        if (username) {
             //check if user name exist
-            const checkusername = await userCollection.findOne({username:username})
-            if(checkusername){
-                return res.status(400).send({message:"username already exist"})
+            const checkusername = await userCollection.findOne({ username: username })
+            if (checkusername) {
+                return res.status(400).send({ message: "username already exist" })
             }
-            await userCollection.updateOne({_id:req.user._id},{$set:{username:username}})
+            await userCollection.updateOne({ _id: req.user._id }, { $set: { username: username } })
 
         }
-        if(email){
-            await userCollection.updateOne({_id:req.user._id},{$set:{email:email}})
+        if (email) {
+            await userCollection.updateOne({ _id: req.user._id }, { $set: { email: email } })
         }
-        if(bio){
-            await userCollection.updateOne({_id:req.user._id},{$set:{bio:bio}})
+        if (bio) {
+            await userCollection.updateOne({ _id: req.user._id }, { $set: { bio: bio } })
         }
-        if(phone){
-            await userCollection.updateOne({_id:req.user._id},{$set:{phone:phone}})
+        if (phone) {
+            await userCollection.updateOne({ _id: req.user._id }, { $set: { phone: phone } })
         }
 
-        return res.status(200).send({message:'updated successfully'})
+        return res.status(200).send({ message: 'updated successfully' })
     }
 
-    static async ForgotPassword(req,res) {
-        const {email} = req.body
+    static async ForgotPassword(req, res) {
+        const { email } = req.body
 
-        const checkIfEmailExist = await userCollection.findOne({email:email})
-        if(!checkIfEmailExist){
-            return res.status(400).send({message:"user with this email does not exist"})
+        const checkIfEmailExist = await userCollection.findOne({ email: email })
+        if (!checkIfEmailExist) {
+            return res.status(400).send({ message: "user with this email does not exist" })
         }
 
-        //send mail to users
+        const length = 20;
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
         
+
+
+        let link1 = `https://tech-space-eight.vercel.app/create-new-password/${result}/${email}`
+        let link2 = `http://localhost:3000/create-new-password/${result}/${email}`
+        //send mail to users 
+        await sendMail(email, link1, link2)
+
+        const updateKey = await userCollection.updateOne({email:email}, {$set:{key:result}})
+
+        if(updateKey){
+            return res.status(200).send({ message: 'mail sent' })
+        }
+        return res.status(500).send({ message: 'mail not sent' })
+    }
+
+    static async ResetPassword(req,res){
+        const { email } = req.params.email
+        const { password } = req.body 
+
+        const checkIfEmailExist = await userCollection.findOne({ email: email })
+        if (!checkIfEmailExist) {
+            return res.status(400).send({ message: "user with this email does not exist" })
+        }
+
+        const checkLink = await userCollection.findOne({email:email, key:req.params.key})
+        if (!checkLink) {
+            return res.status(401).send({ message: "unauthorized key" })
+        }
+
+        if (password) {
+            const salt = await bcrypt.genSalt(10)
+            const new_password = await bcrypt.hash(password, salt)
+
+            await userCollection.updateOne({ _id: req.user._id }, { $set: { password: new_password, key:"" } })
+            return res.status(200).send({ message: 'password updated successfully' })
+        } else {
+            return res.status(400).send({ message: 'please no empty field' })
+        }
     }
 
 }

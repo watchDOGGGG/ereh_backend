@@ -34,6 +34,9 @@ const user = mongoose.Schema({
     lastvisit: {
         type: Date,
         default: Date.now()
+    },
+    key:{
+        type:String
     }
 })
 
