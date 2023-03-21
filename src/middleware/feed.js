@@ -219,7 +219,25 @@ export class Topic {
     }
 
     static async getSavedPost(req, res) {
-        const checkUserSave = await SaveCollection.find({ user: req.user._id }).populate({ path: 'topicId', select: "" }).populate({ path: 'user', select: "" })
+        const checkUserSave = await SaveCollection.find({ user: req.user._id })
+        .populate({
+            path: 'user',
+            model: 'users',
+            select: '-password',
+        })
+            .populate({
+                path: 'topicId',
+                model: 'topic',
+                select: '-password',
+                populate: [
+                    { path: 'user', model: 'users', select: '-password' },
+                    { path: 'comment.from', model: 'users', select: '-password' },
+                    { path: 'comment.to', model: 'users', select: '-password' },
+                    { path: 'comment.reply.from', model: 'users', select: '-password' },
+                    { path: 'comment.reply.to', model: 'users', select: '-password' },
+                ]
+            })
+            .sort({ "comment.date": -1, date: -1 });
         if (!checkUserSave) {
 
             return res.status(204).send({ message: "error saving post" })

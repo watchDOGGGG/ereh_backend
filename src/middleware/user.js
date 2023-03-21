@@ -277,15 +277,14 @@ export class User {
     }
 
     static async ResetPassword(req,res){
-        const { email } = req.params.email
         const { password } = req.body 
 
-        const checkIfEmailExist = await userCollection.findOne({ email: email })
+        const checkIfEmailExist = await userCollection.findOne({ email: req.params.email })
         if (!checkIfEmailExist) {
             return res.status(400).send({ message: "user with this email does not exist" })
         }
 
-        const checkLink = await userCollection.findOne({email:email, key:req.params.key})
+        const checkLink = await userCollection.findOne({email:req.params.email, key:req.params.key})
         if (!checkLink) {
             return res.status(401).send({ message: "unauthorized key" })
         }

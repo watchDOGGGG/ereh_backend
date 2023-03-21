@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 
 export async function sendMail(receiver, link1, link2){
-    console.log(receiver)
+    
     // Create a transport
     const transporter = nodemailer.createTransport({
         host: 'mail.atkas.online',
@@ -18,7 +18,7 @@ export async function sendMail(receiver, link1, link2){
     from: 'headward@atkas.online',
     to: `${receiver}`,
     subject: 'Forgot password',
-    text: `click the link to reset your password ${link1, link2}`
+    text: `click the link to reset your password <br/> ${link1}<br/> ${link2}`
   };
   
   // Send the email
