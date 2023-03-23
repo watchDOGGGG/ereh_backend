@@ -4,6 +4,7 @@ import { verify } from "jsonwebtoken"
 import { AccessToken } from "./helper/jwt.js"
 import { Topic } from "./feed.js"
 import { sendMail } from "./helper/mail.js"
+import moment from "moment";
 
 export class User {
 
@@ -82,7 +83,10 @@ export class User {
         }
         const token = AccessToken.GenerateToken(request)
 
-        const updateLogin = await userCollection.updateOne({ email: email }, { $set: { lastvisit: new_date } })
+        const updateLogin = await userCollection.updateOne({ email: email }, { $set: { 
+            status: true,
+            lastvisit: new_date 
+        } })
 
         if (updateLogin) {
             res.status(200).send({ message: token, user: request })
@@ -105,6 +109,30 @@ export class User {
     static async totalNumberofMembers(req, res) {
         const members = await userCollection.find({ role: { $ne: 'admin' } }).countDocuments()
         return res.status(200).send({ message: members })
+    }
+
+    static async UsersStats(req, res) {
+        const members = await userCollection.find({ 
+            role: { 
+                $ne: 'admin'
+            } 
+        }).select(['fullname', 'date', 'status']);
+
+        return res.status(200).send({ message: members })
+    }
+
+    static async UsersMonthlyStats(req, res) {
+        const { month } = req.params;
+
+        const members = await userCollection.aggregate([
+            {$addFields: {  "month" : {$month: '$date'}}},
+            {$match: { 
+                month: Number(month),
+                role: { $ne: 'admin' }
+            }}
+        ]);
+
+        return res.status(200).send({ message: members.length })
     }
 
     static async AllMembers(req, res) {

@@ -31,6 +31,10 @@ const user = mongoose.Schema({
     bio: {
         type: String
     },
+    status: {
+        type: Boolean,
+        default: true
+    },
     lastvisit: {
         type: Date,
         default: Date.now()
