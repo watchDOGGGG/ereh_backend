@@ -293,7 +293,7 @@ export class User {
             const salt = await bcrypt.genSalt(10)
             const new_password = await bcrypt.hash(password, salt)
 
-            await userCollection.updateOne({ _id: req.user._id }, { $set: { password: new_password, key:"" } })
+            await userCollection.updateOne({ email: req.params.email }, { $set: { password: new_password, key:"" } })
             return res.status(200).send({ message: 'password updated successfully' })
         } else {
             return res.status(400).send({ message: 'please no empty field' })
