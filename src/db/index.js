@@ -10,6 +10,12 @@ export const Db_connection = () => {
         })
         mongoose.connection.on("connected", (err, res) => {
             console.log("Connection establish")
+            mongoose.set('debug', (collectionName, method, query) => {
+				console.log({ 
+                    'type': 'mongo', 
+                    'msg': `${collectionName}.${method}(` + JSON.stringify(query) + ')' 
+                });
+			});
         })
     } catch (error) {
       throw new Error(error)
