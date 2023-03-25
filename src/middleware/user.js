@@ -96,6 +96,26 @@ export class User {
 
     }
 
+    static async Logout(req, res) {
+        const new_date = Date.now()
+        const request = await User.checkUser('id', req.user._id)
+
+        if (!request) {
+            return res.status(404).send({ message: "user not found" })
+        }
+
+        const updateLogin = await userCollection.updateOne({ email: email }, { $set: { 
+            status: false,
+            lastvisit: new_date 
+        } })
+
+        if (updateLogin) {
+            return res.status(200).send({ 
+                message: "User successfully loggedout" 
+            })
+        }
+    }
+
     static async totalNumberofTopicperuser(req, res) {
         const request = await User.checkUser('id', req.params.user)
         console.log(request)
