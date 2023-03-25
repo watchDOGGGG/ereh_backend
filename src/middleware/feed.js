@@ -13,6 +13,25 @@ export class Topic {
         return request
     }
 
+    static async searchTopic(req, res) {
+        const search = req.query.search;
+        const request = await topicCollection.find({
+            $or: [ {topic: { 
+                $regex: search, 
+                $options: "i" 
+            }},
+            {category: {
+                $regex: search, 
+                $options: "i" 
+            }},
+            {description: {
+                $regex: search, 
+                $options: "i" 
+            }}
+        ]});
+        return res.status(200).send({ message: request })
+    }
+
     static async UserTopicCount(user) {
         const request = await topicCollection.find({ user: user }).countDocuments()
         if (!request) {
