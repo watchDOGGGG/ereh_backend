@@ -104,16 +104,20 @@ export class User {
             return res.status(404).send({ message: "user not found" })
         }
 
-        const updateLogin = await userCollection.updateOne({ email: email }, { $set: { 
+        const updateLogin = await userCollection.updateOne({ email: request.email }, { $set: { 
             status: false,
             lastvisit: new_date 
         } })
 
         if (updateLogin) {
             return res.status(200).send({ 
-                message: "User successfully loggedout" 
+                message: "User successfully logged out" 
             })
         }
+
+        return res.status(500).send({ 
+            message: "Log out failed" 
+        })
     }
 
     static async totalNumberofTopicperuser(req, res) {
