@@ -28,7 +28,10 @@ export class Topic {
                 $regex: search, 
                 $options: "i" 
             }}
-        ]});
+        ]}).populate({
+            path: 'user comment.from comment.to comment.reply.from comment.reply.to', select: "-password",
+            model: 'users'
+        });
         return res.status(200).send({ message: request })
     }
 
@@ -162,11 +165,13 @@ export class Topic {
                 { $push: { 'comment.$.reply': { from: req.user._id, to: comment_userto, text: text } } })
             await topicCollection.updateOne({ _id: topicId },
                 { $inc: { comment_count: 1 } })
-
+            const updatedComment = await topicCollection.findOne({
+                _id: topicId, 'comment._id': comment_id
+            })
             if (!CreateComment) {
                 return res.status(500).send({ message: 'error creating comment' })
             }
-            return res.status(201).send({ message: 'reply created', comment: CreateComment })
+            return res.status(201).send({ message: 'reply created', comment: updatedComment })
         }
 
         if (!comment_userto) {
