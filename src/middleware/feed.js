@@ -186,7 +186,10 @@ export class Topic {
         if (!CreateComment) {
             return res.status(500).send({ message: 'error creating comment' })
         }
-        return res.status(201).send({ message: CreateComment })
+        const updatedComment = await topicCollection.findOne({
+            _id: topicId
+        })
+        return res.status(201).send({ message: updatedComment })
     }
 
     static async MakeReaction(req, res) {
