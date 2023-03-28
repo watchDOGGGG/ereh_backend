@@ -167,6 +167,9 @@ export class Topic {
                 { $inc: { comment_count: 1 } })
             const updatedComment = await topicCollection.findOne({
                 _id: topicId, 'comment._id': comment_id
+            }).populate({
+                path: 'user comment.from comment.to comment.reply.from comment.reply.to', select: "-password",
+                model: 'users'
             })
             if (!CreateComment) {
                 return res.status(500).send({ message: 'error creating comment' })
@@ -188,6 +191,9 @@ export class Topic {
         }
         const updatedComment = await topicCollection.findOne({
             _id: topicId
+        }).populate({
+            path: 'user comment.from comment.to comment.reply.from comment.reply.to', select: "-password",
+            model: 'users'
         })
         return res.status(201).send({ message: updatedComment })
     }
