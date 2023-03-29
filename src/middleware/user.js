@@ -146,17 +146,24 @@ export class User {
     }
 
     static async UsersMonthlyStats(req, res) {
-        const { month } = req.params;
+        const allMonth = [1,2,3,4,5,6,7,8,9,10,11,12];
 
-        const members = await userCollection.aggregate([
-            {$addFields: {  "month" : {$month: '$date'}}},
-            {$match: { 
-                month: Number(month),
-                role: { $ne: 'admin' }
-            }}
-        ]);
+        const userMonthlyStats = await Promise.all(allMonth.map(async month => {
+            const actualMonth = moment().month(month).format('MMMM');
+            const userByMonth = await userCollection.aggregate([
+                {$addFields: {  "month" : {$month: '$date'}}},
+                {$match: { 
+                    month,
+                    role: { $ne: 'admin' }
+                }}
+            ]);
+            return {
+                month: actualMonth, 
+                registeredUsers: userByMonth.length
+            };
+        }));
 
-        return res.status(200).send({ message: members.length })
+        return res.status(200).send({ message: userMonthlyStats })
     }
 
     static async AllMembers(req, res) {
