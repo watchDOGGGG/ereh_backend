@@ -129,6 +129,10 @@ export class Topic {
         if (!deleteTopic) {
             return res.status(500).send({ message: 'error deleting topic' })
         }
+        const checkSaveTopic = await SaveCollection.findOne({ topicId: req.params.topicid })
+        if(checkSaveTopic){
+            await SaveCollection.deleteOne({topicId: req.params.topicid })
+        }
         return res.status(200).send({ message: 'topic successfully deleted' })
     }
 
