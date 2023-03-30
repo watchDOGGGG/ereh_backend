@@ -149,14 +149,16 @@ export class User {
         const allMonth = [1,2,3,4,5,6,7,8,9,10,11,12];
 
         const userMonthlyStats = await Promise.all(allMonth.map(async month => {
-            const actualMonth = moment().month(month).format('MMMM');
+            const actualMonth = moment().month(month - 1).format('MMMM');
+            
             const userByMonth = await userCollection.aggregate([
                 {$addFields: {  "month" : {$month: '$date'}}},
                 {$match: { 
                     month,
-                    role: { $ne: 'admin' }
+                    role: { $ne: 'admin' }  
                 }}
             ]);
+
             return {
                 month: actualMonth, 
                 registeredUsers: userByMonth.length
