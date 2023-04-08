@@ -235,10 +235,13 @@ export class User {
 
         const token = AccessToken.GenerateToken(request)
 
-        const updateLogin = await userCollection.updateOne({ email: email }, { $set: { lastvisit: new_date } })
+        const updateLogin = await userCollection.findOneAndUpdate({ email: email }, { $set: { 
+            status: true,
+            lastvisit: new_date 
+        } })
 
         if (updateLogin) {
-            res.status(200).send({ message: token, user: request })
+            res.status(200).send({ message: token, user: updateLogin })
             return
         }
         return res.status(500).send({ message: 'error updating login info' })
